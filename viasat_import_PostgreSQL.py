@@ -44,6 +44,7 @@ cur.execute("""
      Odometer integer)
      """)
 
+
 # create a table of bin, lon and lat
 cur.execute("""
      CREATE  TABLE sequence_catania(

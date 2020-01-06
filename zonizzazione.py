@@ -1,3 +1,4 @@
+
 import psycopg2
 import db_connect
 from sklearn.metrics import silhouette_score
@@ -7,11 +8,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
 import math
+import pandas as pd
 
 #Connect to an existing database
-conn=db_connect.connect_RM2013()
+# from ECOTripRM_ga
+conn=db_connect.connect_EcoTripRM()
 cur = conn.cursor()
-#cur1 = conn.cursor()
 gid= []
 longitude =[]
 latitude =[]
@@ -28,24 +30,26 @@ for numZone in range(3400, 4001, 200):
     "(gid integer  NOT NULL, "
     " zone integer  NOT NULL)");
 
+    cur.execute("""
+        SELECT gid, CASE WHEN p1 is null THEN 0 ELSE p1 END, ST_X(ST_Transform(ST_PointOnSurface(geom), 32632)), 
+                ST_Y(ST_Transform(ST_PointOnSurface(geom), 32632)), 
+                CASE WHEN p1 is null THEN 0 ELSE p1/(ST_Area(ST_Transform(geom, 32632))/1000000) END 
+                FROM zones.istat_indicatori_sezcenc_prov_rm_map WHERE ST_IsValid(geom);
+                 """)
 
-    #Query the database to obtain the list of idterm
-    cur.execute("SELECT gid, CASE WHEN p1 is null THEN 0 ELSE p1 END, ST_X(ST_Transform(ST_PointOnSurface(geom), 32632)), "
-                "ST_Y(ST_Transform(ST_PointOnSurface(geom), 32632)), "
-                "CASE WHEN p1 is null THEN 0 ELSE p1/(ST_Area(ST_Transform(geom, 32632))/1000000) END "
-                "FROM zones.istat_indicatori_sezcenc_prov_rm_map;")
+    # SELECT * from zones.istat_indicatori_sezcenc_prov_rm_map WHERE NOT ST_isvalid(geom)
     records = cur.fetchall()
     i=0
     for row in records:
         gid.append(row[0])
-        longitude.append(
-            row[2])
+        longitude.append(row[2])
         latitude.append(row[3])
         p1.append(row[1])
         density.append(1+int(row[4]))
         print(i, gid[i], longitude[i], latitude[i], density[i])
         i=i+1
 
+# make array of couples of lon and lat
     X = np.array(list(zip(longitude, latitude)))
     dens=np.array(density)
     model = KMeans(n_clusters=numZone).fit(X, sample_weight=dens)

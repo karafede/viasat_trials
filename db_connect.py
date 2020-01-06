@@ -12,3 +12,7 @@ def connect_viasat():
     #Connect to an existing database
     conn = psycopg2.connect(user="postgres", password="vaxcrio1", host="localhost", port="5432", database="fede_viasat")
     return(conn)
+def connect_EcoTripRM():
+    #Connect to an existing database
+    conn = psycopg2.connect(user="postgres", password="vaxcrio1", host="localhost", port="5432", database="EcoTripRM_ga")
+    return(conn)
